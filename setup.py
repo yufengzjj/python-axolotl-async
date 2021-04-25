@@ -7,7 +7,7 @@ import axolotl_async
 deps = ['cryptography', 'python-axolotl-curve25519>=0.4.1', 'protobuf>=3.0.0.b2']
 
 setup(
-    name='python-axolotl_async-async',
+    name='python-axolotl-async',
     version=axolotl_async.__version__,
     packages=find_packages(),
     install_requires=deps,
