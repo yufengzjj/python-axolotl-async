@@ -3,21 +3,21 @@
 import abc
 
 
-class IdentityKeyStore(object):
+class PreKeyStore(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def getIdentityKeyPair(self):
+    async def loadPreKey(self, preKeyId):
         pass
 
     @abc.abstractmethod
-    def getLocalRegistrationId(self):
+    async def storePreKey(self, preKeyId, preKeyRecord):
         pass
 
     @abc.abstractmethod
-    def saveIdentity(self, recepientId, identityKey):
+    async def containsPreKey(self, preKeyId):
         pass
 
     @abc.abstractmethod
-    def isTrustedIdentity(self, recepientId, identityKey):
+    async def removePreKey(self, preKeyId):
         pass

@@ -1,23 +1,22 @@
 # -*- coding: utf-8 -*-
 
-import sys
+import logging
 
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
+from .duplicatemessagexception import DuplicateMessageException
 from .ecc.curve import Curve
+from .invalidmessageexception import InvalidMessageException
+from .nosessionexception import NoSessionException
+from .protocol.prekeywhispermessage import PreKeyWhisperMessage
+from .protocol.whispermessage import WhisperMessage
 from .sessionbuilder import SessionBuilder
 from .state.sessionstate import SessionState
-from .protocol.whispermessage import WhisperMessage
-from .protocol.prekeywhispermessage import PreKeyWhisperMessage
-from .nosessionexception import NoSessionException
-from .invalidmessageexception import InvalidMessageException
-from .duplicatemessagexception import DuplicateMessageException
-
-import  logging
 
 logger = logging.getLogger(__name__)
+
 
 class SessionCipher:
     def __init__(self, sessionStore, preKeyStore, signedPreKeyStore, identityKeyStore, recepientId, deviceId):
@@ -28,11 +27,11 @@ class SessionCipher:
         self.sessionBuilder = SessionBuilder(sessionStore, preKeyStore, signedPreKeyStore,
                                              identityKeyStore, recepientId, deviceId)
 
-    def encrypt(self, paddedMessage):
+    async def encrypt(self, paddedMessage):
         """
         :type paddedMessage: bytes
         """
-        sessionRecord = self.sessionStore.loadSession(self.recipientId, self.deviceId)
+        sessionRecord = await self.sessionStore.loadSession(self.recipientId, self.deviceId)
         sessionState = sessionRecord.getSessionState()
         chainKey = sessionState.getSenderChainKey()
         messageKeys = chainKey.getMessageKeys()
@@ -56,40 +55,40 @@ class SessionCipher:
                                                      sessionState.getLocalIdentityKey(),
                                                      ciphertextMessage)
         sessionState.setSenderChainKey(chainKey.getNextChainKey())
-        self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
+        await self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
 
         return ciphertextMessage
 
-    def decryptMsg(self, ciphertext, textMsg=True):
+    async def decryptMsg(self, ciphertext, textMsg=True):
         """
         :type ciphertext: WhisperMessage
         :type textMsg: Bool set this to False if you are decrypting bytes
                        instead of string
         """
 
-        if not self.sessionStore.containsSession(self.recipientId, self.deviceId):
+        if not await self.sessionStore.containsSession(self.recipientId, self.deviceId):
             raise NoSessionException("No session for: %s, %s" % (self.recipientId, self.deviceId))
 
-        sessionRecord = self.sessionStore.loadSession(self.recipientId, self.deviceId)
+        sessionRecord = await self.sessionStore.loadSession(self.recipientId, self.deviceId)
         plaintext = self.decryptWithSessionRecord(sessionRecord, ciphertext)
 
-        self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
+        await self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
 
         return plaintext
 
-    def decryptPkmsg(self, ciphertext, textMsg=True):
+    async def decryptPkmsg(self, ciphertext, textMsg=True):
         """
         :type ciphertext: PreKeyWhisperMessage
         """
-        sessionRecord = self.sessionStore.loadSession(self.recipientId, self.deviceId)
-        unsignedPreKeyId = self.sessionBuilder.process(sessionRecord, ciphertext)
+        sessionRecord = await self.sessionStore.loadSession(self.recipientId, self.deviceId)
+        unsignedPreKeyId = await self.sessionBuilder.process(sessionRecord, ciphertext)
         plaintext = self.decryptWithSessionRecord(sessionRecord, ciphertext.getWhisperMessage())
 
         # callback.handlePlaintext(plaintext)
-        self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
+        await self.sessionStore.storeSession(self.recipientId, self.deviceId, sessionRecord)
 
         if unsignedPreKeyId is not None:
-            self.preKeyStore.removePreKey(unsignedPreKeyId)
+            await self.preKeyStore.removePreKey(unsignedPreKeyId)
 
         return plaintext
 
@@ -199,6 +198,7 @@ class SessionCipher:
 
     def getCipher(self, key, iv):
         return AESCipher(key, iv)
+
 
 class AESCipher:
     def __init__(self, key, iv):

@@ -1,22 +1,21 @@
 # -*- coding: utf-8 -*-
 
-import unittest
 import time
-import sys
+import unittest
 
+from ..ecc.curve import Curve
 from ..invalidkeyexception import InvalidKeyException
+from ..protocol.ciphertextmessage import CiphertextMessage
+from ..protocol.keyexchangemessage import KeyExchangeMessage
+from ..protocol.prekeywhispermessage import PreKeyWhisperMessage
+from ..protocol.whispermessage import WhisperMessage
 from ..sessionbuilder import SessionBuilder
 from ..sessioncipher import SessionCipher
-from ..ecc.curve import Curve
-from ..protocol.ciphertextmessage import CiphertextMessage
-from ..protocol.whispermessage import WhisperMessage
-from ..protocol.prekeywhispermessage import PreKeyWhisperMessage
 from ..state.prekeybundle import PreKeyBundle
-from ..tests.inmemoryaxolotlstore import InMemoryAxolotlStore
 from ..state.prekeyrecord import PreKeyRecord
 from ..state.signedprekeyrecord import SignedPreKeyRecord
+from ..tests.inmemoryaxolotlstore import InMemoryAxolotlStore
 from ..tests.inmemoryidentitykeystore import InMemoryIdentityKeyStore
-from ..protocol.keyexchangemessage import KeyExchangeMessage
 from ..untrustedidentityexception import UntrustedIdentityException
 
 
@@ -179,7 +178,7 @@ class SessionBuilderTest(unittest.TestCase):
 
         for i in range(0, len(bobSignedPreKeySignature) * 8):
             modifiedSignature = bytearray(bobSignedPreKeySignature[:])
-            modifiedSignature[int(i/8)] ^= 0x01 << (i % 8)
+            modifiedSignature[int(i / 8)] ^= 0x01 << (i % 8)
 
             bobPreKey = PreKeyBundle(bobIdentityKeyStore.getLocalRegistrationId(), 1, 31337,
                                      bobPreKeyPair.getPublicKey(), 22, bobSignedPreKeyPair.getPublicKey(),
@@ -293,8 +292,8 @@ class SessionBuilderTest(unittest.TestCase):
 
         for i in range(0, 10):
             loopingMessage = b"What do we mean by saying that existence precedes essence? " \
-                 b"We mean that man first of all exists, encounters himself, " \
-                 b"surges up in the world--and defines himself aftward. %d" % i
+                             b"We mean that man first of all exists, encounters himself, " \
+                             b"surges up in the world--and defines himself aftward. %d" % i
             bobLoopingMessage = bobSessionCipher.encrypt(loopingMessage)
 
             loopingPlaintext = aliceSessionCipher.decryptMsg(WhisperMessage(serialized=bobLoopingMessage.serialize()))
@@ -305,15 +304,15 @@ class SessionBuilderTest(unittest.TestCase):
 
         for i in range(0, 10):
             loopingMessage = b"What do we mean by saying that existence precedes essence? " \
-                 b"We mean that man first of all exists, encounters himself, " \
-                 b"surges up in the world--and defines himself aftward. %d" % i
+                             b"We mean that man first of all exists, encounters himself, " \
+                             b"surges up in the world--and defines himself aftward. %d" % i
             aliceLoopingMessage = aliceSessionCipher.encrypt(loopingMessage)
             aliceOutOfOrderMessages.append((loopingMessage, aliceLoopingMessage))
 
         for i in range(0, 10):
             loopingMessage = b"What do we mean by saying that existence precedes essence? " \
-                 b"We mean that man first of all exists, encounters himself, " \
-                 b"surges up in the world--and defines himself aftward. %d" % i
+                             b"We mean that man first of all exists, encounters himself, " \
+                             b"surges up in the world--and defines himself aftward. %d" % i
             aliceLoopingMessage = aliceSessionCipher.encrypt(loopingMessage)
             loopingPlaintext = bobSessionCipher.decryptMsg(WhisperMessage(serialized=aliceLoopingMessage.serialize()))
 

@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import sys
-
-import axolotl
 from setuptools import find_packages, setup
+
+import axolotl_async
 
 deps = ['cryptography', 'python-axolotl-curve25519>=0.4.1', 'protobuf>=3.0.0.b2']
 
 setup(
-    name='python-axolotl',
-    version=axolotl.__version__ ,
-    packages= find_packages(),
-    install_requires = deps,
+    name='python-axolotl_async-async',
+    version=axolotl_async.__version__,
+    packages=find_packages(),
+    install_requires=deps,
     license='GPLv3 License',
     author='Tarek Galal',
     author_email='tare2.galal@gmail.com',
