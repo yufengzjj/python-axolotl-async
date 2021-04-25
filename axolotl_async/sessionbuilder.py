@@ -57,7 +57,7 @@ class SessionBuilder:
             logger.warn("We've already setup a session for this V3 message, letting bundled message fall through...")
             return None
 
-        ourSignedPreKey = await self.signedPreKeyStore.loadSignedPreKey(message.getSignedPreKeyId()).getKeyPair()
+        ourSignedPreKey = (await self.signedPreKeyStore.loadSignedPreKey(message.getSignedPreKeyId())).getKeyPair()
         parameters = BobAxolotlParameters.newBuilder()
         parameters.setTheirBaseKey(message.getBaseKey()) \
             .setTheirIdentityKey(message.getIdentityKey()) \
@@ -66,7 +66,7 @@ class SessionBuilder:
             .setOurRatchetKey(ourSignedPreKey)
 
         if message.getPreKeyId() is not None:
-            parameters.setOurOneTimePreKey(await self.preKeyStore.loadPreKey(message.getPreKeyId()).getKeyPair())
+            parameters.setOurOneTimePreKey((await self.preKeyStore.loadPreKey(message.getPreKeyId())).getKeyPair())
         else:
             parameters.setOurOneTimePreKey(None)
 
