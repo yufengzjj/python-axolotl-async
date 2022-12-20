@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 import axolotl_async
 
-deps = ['cryptography', 'python-axolotl-curve25519>=0.4.1', 'protobuf>=3.0.0.b2']
+deps = ['cryptography', 'python-axolotl-curve25519>=0.4.1', 'protobuf~=4.21.10']
 
 setup(
     name='python-axolotl-async',
